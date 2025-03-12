@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Portrait Milano Elevator</title>
+    <title>Elevators</title>
     <style>
         * {
             margin: 0;
@@ -124,9 +124,9 @@
 
         // Immagini per lo slideshow
         const images = [
-            'URL_IMMAGINE_1.jpg',
-            'URL_IMMAGINE_2.jpg',
-            'URL_IMMAGINE_3.jpg'
+            'image_1.jpg',
+            'image_2.jpg',
+            'image_3.jpg'
         ];
 
         let currentImage = 0;
@@ -165,8 +165,10 @@
         }
 
         // Funzioni menu
+
+        /* meteo milano v1
         async function showWeather() {
-            const API_KEY = 'd6e6d71296cc25367452205d130fb343';
+            const API_KEY = '***';
             try {
                 const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Milan,IT&units=metric&appid=\${API_KEY}`);
                 const data = await response.json();
@@ -175,7 +177,33 @@
                 console.error('Errore meteo:', error);
             }
             resetInactivityTimer();
+        }*/
+
+
+        // Meteo milano
+        async function showWeather() {
+            // Recupera l'API key dalla URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const apiKey = urlParams.get('key');
+            
+            if (!apiKey) {
+                console.error('API key non trovata');
+                alert('Errore: configurazione meteo non valida');
+                return;
+            }
+        
+            try {
+                const response = await fetch(
+                    `https://api.openweathermap.org/data/2.5/weather?q=Milan,IT&units=metric&appid=\${apiKey}`
+                );
+                const data = await response.json();
+                alert(`Temperatura a Milano: \${data.main.temp}°C`);
+            } catch (error) {
+                console.error('Errore meteo:', error);
+            }
+            resetInactivityTimer();
         }
+
 
         async function startCamera() {
             try {
@@ -224,7 +252,7 @@
 
         function showNews() {
             const events = [
-                "Aperitivo in Terrazza - 18:00",
+                "Aperitivo nel Porticato - 17:00",
                 "Cena Gourmet - 20:00",
                 "Spa Experience - Tutto il giorno"
             ];
@@ -234,9 +262,9 @@
 
         function showHours() {
             const hours = [
-                "Ristorante: 7:00 - 23:00",
-                "Spa: 10:00 - 20:00",
-                "Bar: 11:00 - 01:00"
+                "Ristorante: 07:00 - 01:00",
+                "Spa: 09:00 - 20:00",
+                "Bar: 07:00 - 01:00"
             ];
             alert(hours.join('\n'));
             resetInactivityTimer();
