@@ -499,28 +499,120 @@
             resetInactivityTimer();
         }
 
-        async function takePhoto(stream) {
-            const video = document.getElementById('video');
-            const canvas = document.getElementById('canvas');
-            const cameraView = document.getElementById('cameraView');
-            
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            
-            stream.getTracks().forEach(track => track.stop());
-            
-            showModal(
-                'Foto Scattata',
-                'La tua foto è stata salvata',
-                [{
-                    text: 'Torna al Menu',
-                    action: `closeModal(this.closest(".modal")); 
-                            document.getElementById('cameraView').style.display = 'none';
-                            showMenu();`
-                }]
-            );
-        }
+    async function takePhoto(stream) {
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const cameraView = document.getElementById('cameraView');
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    
+    // Ferma lo stream della camera
+    stream.getTracks().forEach(track => track.stop());
+    
+    // Converti il canvas in base64
+    const photoData = canvas.toDataURL('image/jpeg');
+    
+    showModal(
+        'Foto Scattata',
+        `
+        <p>Vuoi inviare la foto via email?</p>
+        <input type="email" id="emailInput" placeholder="Inserisci la tua email" style="
+            width: 100%;
+            padding: 10px;
+            margin: 20px 0;
+            background: rgba(176,156,115,0.1);
+            border: 1px solid #B09C73;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+        ">
+        `,
+        [
+            {
+                text: 'Invia',
+                action: 'sendPhoto()'
+            },
+            {
+                text: 'Torna al Menu',
+                action: `
+                    closeModal(this.closest(".modal")); 
+                    document.getElementById("cameraView").style.display = "none"; 
+                    showMenu();
+                `,
+                secondary: true
+            }
+        ]
+    );
+}
+
+// Funzione per inviare la foto
+async function sendPhoto() {
+    const email = document.getElementById('emailInput').value;
+    const canvas = document.getElementById('canvas');
+    
+    if (!email) {
+        showModal(
+            'Errore',
+            'Per favore inserisci un indirizzo email valido',
+            [{
+                text: 'Chiudi',
+                action: 'closeModal(this.closest(".modal"))'
+            }]
+        );
+        return;
+    }
+    
+    try {
+        // Converti il canvas in base64
+        const photoData = canvas.toDataURL('image/jpeg').split(',')[1];
+        
+        // Prepara i dati da inviare
+        const data = {
+            toEmail: email,
+            photoData: photoData,
+            timestamp: new Date().toISOString(),
+            location: 'Portrait Milano Elevator'
+        };
+        
+        // Invia al tuo endpoint sicuro
+        const response = await fetch('/api/send-portrait-photo', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                // Aggiungi eventuali token di sicurezza se necessari
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (!response.ok) throw new Error('Errore invio');
+        
+        showModal(
+            'Successo',
+            'La foto è stata inviata con successo!',
+            [{
+                text: 'Torna al Menu',
+                action: `
+                    closeModal(this.closest(".modal")); 
+                    document.getElementById("cameraView").style.display = "none"; 
+                    showMenu();
+                `
+            }]
+        );
+    } catch (error) {
+        showModal(
+            'Errore',
+            'Si è verificato un errore durante l\'invio della foto',
+            [{
+                text: 'Chiudi',
+                action: 'closeModal(this.closest(".modal"))'
+            }]
+        );
+    }
+}
+
+
 
         // Inizializzazione
         showStandby();
